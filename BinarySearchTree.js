@@ -1,14 +1,14 @@
 let arrayInput = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
-console.log(arrayInput);
+
+console.log("INPUT", arrayInput);
 
 const TreeNode = (value = null, left = null, right = null) => {
   return { value, left, right };
 };
 
-const Tree = (array) => {
-  // visualize tree
-  // value of root = node parameter
-  const prettyPrint = (node, prefix = "", isLeft = true) => {
+const Tree = (array, root = null) => {
+  // HELPER FUNCTION: visualize tree: value of root = node parameter
+  const prettyPrint = (node = root, prefix = "", isLeft = true) => {
     if (node.right !== null) {
       prettyPrint(node.right, `${prefix}${isLeft ? "│   " : "    "}`, false);
     }
@@ -20,10 +20,9 @@ const Tree = (array) => {
 
   const buildTree = (array, start = 0, end = array.length - 1) => {
     if (start > end) {
-      // base case
       return null;
     }
-    let mid = (start + end) / 2;
+    let mid = Math.floor((start + end) / 2);
     let treeRoot = TreeNode(array[mid]);
 
     treeRoot.left = buildTree(array, start, mid - 1);
@@ -32,59 +31,209 @@ const Tree = (array) => {
     return treeRoot;
   };
 
+  // Must appear after initialization of buildTree and prettyPrint helper functions
   let sortedArray = [...new Set(array.sort((a, b) => a - b))];
-  let root = buildTree(sortedArray);
-  console.log(buildTree(sortedArray));
+  root = buildTree(sortedArray);
+
+  const find = (value, node = root) => {
+    if (node === null || node.value === value) {
+      return node;
+    }
+
+    if (value < node.value) {
+      return find(value, node.left);
+    }
+
+    if (value > node.value) {
+      return find(value, node.right);
+    }
+
+    return null;
+  };
+
+  const insert = (value, node = root) => {
+    if (node === null) {
+      return TreeNode(value);
+    }
+
+    if (value < node.value) {
+      node.left = insert(value, node.left);
+    }
+
+    if (value > node.value) {
+      node.right = insert(value, node.right);
+    }
+
+    return node;
+  };
+
+  function minValue(node) {
+    let minv = node.value;
+    while (node.left !== null) {
+      minv = node.left.value;
+      node = node.left;
+    }
+    return minv;
+  }
+
+  const deleteNode = (value, node = root) => {
+    if (node === null) {
+      return node;
+    }
+
+    if (value > node.value) {
+      node.right = deleteNode(value, node.right);
+    } else if (value < node.value) {
+      node.left = deleteNode(value, node.left);
+    } else {
+      if (node.left === null) {
+        return node.right;
+      } else if (node.right === null) {
+        return node.left;
+      }
+      node.value = minValue(node.right);
+      node.right = deleteNode(node.value, node.right);
+    }
+
+    return node;
+  };
+
+  let levelOrder = (node = root) => {
+    const levels = [];
+
+    if (!root) {
+      return levels;
+    }
+
+    let queue = [node];
+    while (queue.length) {
+      const queueLength = queue.length;
+      const level = [];
+
+      for (let i = 0; i < queueLength; i++) {
+        const newNode = queue.shift();
+
+        if (newNode.left) {
+          queue.push(newNode.left);
+        }
+        if (newNode.right) {
+          queue.push(newNode.right);
+        }
+
+        level.push(newNode.value);
+      }
+      level.map((x) => levels.push(x));
+    }
+    return levels;
+  };
+
+  const inOrder = (array = [], node = root, changeValue) => {
+    if (node === null) return;
+
+    if (node.left !== null) {
+      inOrder(array, node.left);
+    }
+    array.push(node.value);
+
+    if (node.right !== null) {
+      inOrder(array, node.right);
+    }
+
+    if (changeValue) {
+      return changeValue(node.value);
+    } else {
+      return array;
+    }
+  };
+
+  const preOrder = (array = [], node = root, changeValue) => {
+    if (node === null) return;
+    array.push(node.value);
+
+    if (node.left !== null) {
+      preOrder(array, node.left);
+    }
+
+    if (node.right !== null) {
+      preOrder(array, node.right);
+    }
+
+    if (changeValue) {
+      return changeValue(node.value);
+    } else {
+      return array;
+    }
+  };
+
+  const postOrder = (array = [], node = root, changeValue) => {
+    if (node === null) return;
+
+    if (node.left !== null) {
+      postOrder(array, node.left);
+    }
+
+    if (node.right !== null) {
+      postOrder(array, node.right);
+    }
+
+    array.push(node.value);
+
+    if (changeValue) {
+      return changeValue(node.value);
+    } else {
+      return array;
+    }
+  };
+
+  const height = (node = root) => {
+    if (node === null) {
+      return 0;
+    }
+    let lHeight = height(node.left);
+    let rHeight = height(node.right);
+
+    if (lHeight > rHeight) {
+      return lHeight + 1;
+    } else {
+      return rHeight + 1;
+    }
+  };
+
+  const findDepth = (value, depth = 0, node = root) => {
+    if (node === null || node.value === value) {
+      return depth;
+    }
+
+    if (value < node.value) {
+      return findDepth(value, ++depth, node.left);
+    }
+
+    if (value > node.value) {
+      return findDepth(value, ++depth, node.right);
+    }
+  };
+
+  const isBalanced = (node = root) => {
+    if (Math.abs(height(node.left) - height(node.right)) <= 1) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const rebalance = (node = root) => {
+    let currentArray = inOrder();
+    root = buildTree(currentArray);
+    return root;
+  };
+
+  console.log("Original root");
   prettyPrint(root);
-
-  const insert = (value) => {
-    // insert node
-    // return new root node
-  };
-
-  const deleteNode = (value) => {
-    // delete node - does node have children or not?
-    // return new root node
-  };
-
-  const find = (value) => {
-    // return node with the value
-  };
-
-  const levelOrder = () => {
-    // make queue array acting as queue for children nodes to be traversed
-    // traverse the tree in breadth-first level order and provide each node as the argument to the provided function.
-    // iteration and recursion (try implementing both!).
-    // The method should return an array of values if no function is given.
-  };
-
-  // functions that accept a function parameter. Each of these functions should traverse the tree in their respective depth-first order and yield each node to the provided function given as an argument. The functions should return an array of values if no function is given.
-  const inOrder = () => {};
-  const preOrder = () => {};
-  const postOrder = () => {};
-
-  const height = (node) => {
-    //returns node height
-    // Height is defined as the number of edges in longest path from a given node to a leaf node.
-  };
-
-  const depth = (node) => {
-    // returns node depth
-    // Depth is defined as the number of edges in path from a given node to the tree’s root node.
-  };
-
-  const isBalanced = () => {
-    // checks if the tree is balanced
-    // The difference between heights of left subtree and right subtree of every node is not more than 1.
-  };
-
-  const rebalance = () => {
-    // rebalances an unbalanced tree
-    // Tip: You’ll want to use a traversal method to provide a new array to the buildTree function.
-  };
+  console.log("-----------------------------");
 
   return {
     root,
+    prettyPrint,
     insert,
     deleteNode,
     find,
@@ -93,10 +242,12 @@ const Tree = (array) => {
     preOrder,
     postOrder,
     height,
-    depth,
+    findDepth,
     isBalanced,
     rebalance,
   };
 };
 
 let dianasTree = Tree(arrayInput);
+console.log(dianasTree.levelOrder(dianasTree.root));
+// console.log("prettyprint call", dianasTree.prettyPrint(outsideRoot));

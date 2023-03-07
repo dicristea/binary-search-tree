@@ -15,7 +15,7 @@ This code is a solution to The Odin Project's <a href="https://www.theodinprojec
 7. Confirm that the tree is balanced by calling isBalanced
 8. Print out all elements in level, pre, post, and in order
 
---Notes--
+## Notes
 
 <code>let sortedArray = [...new Set(array.sort((a, b) => a - b))];</code>
 
